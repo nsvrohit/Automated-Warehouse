@@ -1,30 +1,33 @@
-% sort and object declaration
+% INITIALIZATION.ASP
 
-boolean(t;f).
+% 1. Locations
 
-% locations
+% 1.1. Node
+node(NID) :- init(object(node, NID), value(at, pair(X, Y))).
+loc(X, Y) :- init(object(node, NID), value(at, pair(X, Y))).
+node(NID, loc(X, Y)) :- init(object(node, NID), value(at, pair(X, Y))).
 
-node(NID, X, Y) :- init(object(node, NID), value(at, pair(X, Y))).
-highway(HID, X, Y) :- init(object(highway, HID), value(at, pair(X, Y))).
-pickingStation(PSID, X, Y) :- init(object(pickingStation, PSID), value(at, pair(X, Y))).
+% 1.2. Highway
+highway(NID) :- init(object(highway, NID), value(at, pair(X, Y))).
 
-% moving objects
+% 1.3. Picking Station
+pickingStation(PSID) :- init(object(pickingStation, PSID), value(at, pair(X, Y))), init(object(node, NID), value(at, pair(X, Y))).
+pickingStation(PSID, NID) :- init(object(pickingStation, PSID), value(at, pair(X, Y))), init(object(node, NID), value(at, pair(X, Y))).
 
+% 2. Moving Objects
+
+% 2.1. Robot
 robot(RID) :- init(object(robot, RID), value(at, pair(X, Y))).
-robot(RID, X, Y, 0) :- init(object(robot, RID), value(at, pair(X, Y))).
+robot(RID, object(node, NID), 0) :- init(object(robot, RID), value(at, pair(X, Y))), node(NID, loc(X, Y)).
 
+% 2.2. Shelf
 shelf(SID) :- init(object(shelf, SID), value(at, pair(X, Y))).
-shelf(SID, X, Y, 0) :- init(object(shelf, SID), value(at, pair(X, Y))).
+shelf(SID, object(node, NID), 0) :- init(object(shelf, SID), value(at, pair(X, Y))), node(NID, loc(X, Y)).
 
-% products
-
+% 3. Product
 product(PID) :- init(object(product, PID), value(on, pair(Q, SID))).
-product(PID, Q, SID, 0) :- init(object(product, PID), value(on, pair(Q, SID))).
+product(PID, object(shelf, SID), Q, 0) :- init(object(product, PID), value(on, pair(Q, SID))).
 
-% orders
-
-order(OID, PSID) :- init(object(order, OID), value(pickingStation, PSID)).
-procure(OID, PID, Q, 0) :- init(object(order, OID), value(line, pair(PID, Q))).
-
-% robot is carrying a shelf
-transit(f, RID, SID, 0) :- robot(RID), shelf(SID).
+% 4. Order
+order(OID) :- init(object(order, OID), value(pickingStation, PSID)).
+suborder(OID, object(node, NID), procure(PID, Q), 0) :- init(object(order, OID), value(pickingStation, PSID)), pickingStation(PSID, NID), init(object(order, OID), value(line, pair(PID, Q))).

@@ -1,22 +1,31 @@
-% state constraints
+% STATE_CONSTRAINTS.ASP
 
-% picking station cannot be a highway
-:- pickingStation(PSID, X, Y), highway(HID, X1, Y1), X=X1, Y=Y1.
+% 1. Picking Station cannot be a Highway.
+:- pickingStation(_, NID), highway(NID).
 
-% shelf cannot be on a highway
-:- shelf(SID, X, Y, T), highway(HIX, X1, Y1), X=X1, Y=Y1.
+% 2. Shelf cannot be on a Highway.
+:- shelf(SID, object(node, NID), _), highway(NID).
 
-% one robot cannot be on two nodes
-:- 2{robot(RID, X, Y, T)}, robot(RID), T=0..t.
+% 3. Robot cannot be on two Nodes.
+:- 2{robot(RID, object(node, NID), T): node(NID)}, robot(RID), T=0..t.
 
-% two robots cannot be on the same node at a time
-:- 2{robot(RID, X, Y, T): robot(RID)}, node(NID, X, Y), T=0..t.
+% 4. Two Robots cannot be on the same Node.
+:- 2{robot(RID, object(node, NID), T): robot(RID)}, node(NID), T=0..t.
 
-% robots cannot swap
-:- robot(RID1, X1, Y1, T), robot(RID1, X2, Y2, T+1), robot(RID2, X2, Y2, T), robot(RID2, X1, Y1, T+1), RID1!=RID2.
+% 5. Robots cannot swap positions.
+:- robot(RID1, object(node, NID1), T), robot(RID1, object(node, NID2), T+1), robot(RID2, object(node, NID2), T), robot(RID2, object(node, NID1), T+1), RID1!=RID2.
 
-% one shelf cannot be on two nodes
-:- 2{shelf(SID, X, Y, T)}, shelf(SID), T=0..t.
+% 6. Shelf cannot be on two Nodes.
+:- 2{shelf(SID, object(node, NID), T): node(NID)}, shelf(SID), T=0..t.
 
-% two shelves cannot be on the same node at a time
-:- 2{shelf(SID, X, Y, T): shelf(SID)}, node(NID, X, Y), T=0..t.
+% 7. Two Shelves cannot be on the same Node.
+:- 2{shelf(SID, object(node, NID), T): shelf(SID)}, node(NID), T=0..t.
+
+% 8. Shelf cannot be on two Robots.
+:- 2{shelf(SID, object(robot, RID), T): robot(RID)}, shelf(SID), T=0..t.
+
+% 9. Two Shelves cannot be on the same Robot.
+:- 2{shelf(SID, object(robot, RID), T): shelf(SID)}, robot(RID), T=0..t.
+
+% 10. Shelf has to be either on Robot or on Node.
+:- shelf(SID, object(robot, _), T), shelf(SID, object(node, _), T).
